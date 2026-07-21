@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>番茄钟</title>
+    <style>
+        body{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+        }
+        .out_container{
+            width:800px;
+            height:400px;
+            display:flex;
+            flex-direction: column;
+            align-items: center;
+
+            /* ✅ 背景（温暖但不抢戏） */
+            background: #FFF8F5;
+
+            /* ✅ 边框（关键升级） */
+            border: 1px solid #F0E6E2;    /* 浅暖灰，比 solid 高级 */
+            border-radius: 24px;
+
+            /* ✅ 柔和阴影（高级感核心） */
+            box-shadow:
+                    0 8px 30px rgba(0, 0, 0, 0.06),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+            /* ✅ 内部呼吸感 */
+            padding: 24px 0;              /* 上下留白，不贴边 */
+            box-sizing: border-box;
+
+            /* ✅ 居中整个大盒子（建议） */
+            margin: 40px auto;
+        }
+        .video_container{
+            width:530px;
+            height:300px;
+            display:flex;
+            margin-top: 10px;
+            align-items: center;
+            justify-content: center;
+
+            /* ✅ 背景（黑底，突出视频） */
+            background: #0d0d0d;
+
+            /* ✅ 边框（关键升级） */
+            border: 1px solid #2a2a2a;     /* 深灰，不是死黑 */
+            border-radius: 20px;
+
+            /* ✅ 柔和阴影 */
+            box-shadow:
+                    0 8px 24px rgba(0, 0, 0, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+            /* ✅ 防止视频溢出 */
+            overflow: hidden;
+
+            /* ✅ 相对定位（给挂件用） */
+            position: relative;
+        }
+        .video_container::before {
+            content: "";
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 10px;
+            height: 10px;
+            background: #FF7A66;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 122, 102, 0.6);
+            z-index: 2;
+        }
+        .video_container::after {
+            content: "专注中";
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC";
+            letter-spacing: 0.5px;
+        }
+        .video_glow {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 40px;
+            background: radial-gradient(ellipse, rgba(255, 122, 102, 0.25), transparent 70%);
+            pointer-events: none;
+        }
+        .button_container{
+            width:700px;
+            height:80px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display:flex;
+            justify-content: center;
+        }
+        .btn_group{
+            padding: 8px 16px;       /* 内边距控制按钮大小 */
+            font-size: 14px;         /* 字体大小 */
+            cursor: pointer;
+            min-width: 88px;         /* 最小宽度，保证“30分钟”“60分钟”不拥挤 */
+            text-align: center;
+
+            /* ✅ 字体（更柔和） */
+            font-family: -apple-system, BlinkMacSystemFont,
+            "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #5a4a42;
+
+            /* ✅ 背景 & 边框（关键） */
+            background: #fff8f5;          /* 极浅暖白 */
+            border: 1px solid #f0e6e2;    /* 浅暖灰边框 */
+            border-radius: 999px;
+
+            /* ✅ 柔和阴影（高级感来源） */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+
+            /* ✅ 动效 */
+            transition: all 0.2s ease;
+        }
+        .btn_group:hover {
+            background: #fff1eb;
+            border-color: #ffd1c1;
+            box-shadow: 0 4px 10px rgba(255, 122, 102, 0.12);
+            color: #e86b55;
+        }
+        .btn_group:active {
+            transform: scale(0.97);
+            background: #ffe9e3;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        /* ✅ 选中 / 激活态（30/60分钟用） */
+        .btn_group.active {
+            background: #ffe9e3;
+            color: #ff7a66;
+            border-color: #ffc4b4;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 122, 102, 0.18);
+        }
+    </style>
+</head>
+<body>
+   <!--总边框-->
+   <div class="out_container">
+       <div class="video_container">
+           <video playsinline id="time_video" src="video/30分钟.MOV" width="700" height="300" ></video>
+           <div class="video_glow"></div>
+       </div>
+       <div class="button_container">
+           <button class="btn_group active" data-min="30">30 分钟</button>
+           <button class="btn_group" data-min="60">60 分钟</button>
+           <button id="start" class="btn_group">▶</button>
+           <button id="stop" class="btn_group">⏹</button>
+       </div>
+   </div>
+</body>
+<script>
+    <!--按钮视频变化-->
+    var current_video=document.getElementById("time_video");
+    var timeBtn=document.querySelectorAll(".btn_group[data-min]")
+    timeBtn.forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            if(btn.dataset.min==="30"){
+                current_video.src="video/30分钟.MOV";
+            }else{
+                current_video.src="video/60分钟.MP4";
+            }
+            current_video.pause();
+        })
+    });
+
+    <!--播放按钮变化及功能-->
+    var playBtn=document.getElementById("start");
+    playBtn.addEventListener('click',()=>{
+        if(playBtn.textContent==="▶"){
+            playBtn.textContent = '⏸';
+            current_video.play();
+        }else{
+            playBtn.textContent = '▶';
+            current_video.pause();
+        }
+    });
+
+    <!--停止复位键功能-->
+    var stopBtn=document.getElementById("stop");
+    stopBtn.addEventListener('click',()=>{
+        current_video.pause();
+        current_video.currentTime=0;
+        playBtn.textContent='▶'
+    })
+
+    <!--切换按钮变化-->
+    document.querySelectorAll('.btn_group[data-min]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn_group[data-min]')
+                .forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+</script>
+</html>
